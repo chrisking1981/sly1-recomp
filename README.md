@@ -32,6 +32,20 @@ This project aims to run **Sly Cooper and the Thievius Raccoonus** (PS2) nativel
 
 **Current progress:** Game executes 108+ function calls before hitting unimplemented hardware.
 
+## Documentation
+
+See `docs/` directory:
+
+| Document | Description |
+|----------|-------------|
+| `PROJECT_STATUS.md` | Current status, timeline, known issues |
+| `PS2RECOMP_GUIDE.md` | How the recompiler works, configuration |
+| `BUILD_GUIDE.md` | General build instructions (any platform) |
+| `MY_SETUP.md` | My specific setup (for LLMs in my environment) |
+| `AI_WORKFLOW.md` | AI-assisted development methodology |
+
+**For LLMs**: Use `MY_SETUP.md` if working in my environment, or `BUILD_GUIDE.md` for general setup.
+
 ## Project Structure
 
 ```
@@ -44,9 +58,12 @@ sly1-recomp/
 │   ├── fix_delay_slot_splits.py  # Fix function boundaries
 │   └── iterate_fixes.py          # Automated test loop
 ├── docs/
-│   ├── ps2recomp-analysis.md         # Tool analysis
-│   ├── ps2recomp-bug-report.md       # Bugs we found/fixed
-│   └── ai-assisted-reverse-engineering.md  # Our workflow
+│   ├── PROJECT_STATUS.md         # Project status & timeline
+│   ├── PS2RECOMP_GUIDE.md        # Technical recompiler guide
+│   ├── BUILD_GUIDE.md            # General build instructions
+│   ├── MY_SETUP.md               # My specific environment
+│   ├── AI_WORKFLOW.md            # AI-assisted workflow
+│   └── backup/                   # Previous documentation
 └── output/                   # Generated code goes here
 ```
 
@@ -117,7 +134,7 @@ During testing, we discovered and fixed several critical bugs in PS2Recomp:
 4. **Delay slot handling** - Split across function boundaries
 5. **Missing syscalls** - GetSyscallHandler, SetSyscall, etc.
 
-See [docs/ps2recomp-bug-report.md](docs/ps2recomp-bug-report.md) for details.
+See [docs/backup/ps2recomp-bug-report.md](docs/backup/ps2recomp-bug-report.md) for details.
 
 ## AI-Assisted Development
 
@@ -129,7 +146,7 @@ This project was developed using **Claude Code with Opus 4.5** for AI-assisted r
 - Generating fix code and test scripts
 - Creating documentation
 
-See [docs/ai-assisted-reverse-engineering.md](docs/ai-assisted-reverse-engineering.md) for the full workflow.
+See [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md) for the full workflow.
 
 ## Contributing
 
