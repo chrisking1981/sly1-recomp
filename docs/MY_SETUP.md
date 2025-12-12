@@ -86,19 +86,45 @@ C:\Users\User\Documents\decompilations\sly1-ps2-decomp\
 
 ## Exact Build Commands
 
-### Full Rebuild (PowerShell)
+> **IMPORTANT:** Build commands must run via MSYS2 MinGW64 shell (not PowerShell directly).
+> CMake/Ninja need the MinGW toolchain in PATH which is only set in MSYS2.
 
-```powershell
-cd C:\Users\User\Documents\decompilations\sly1-ps2-decomp\PS2Recomp\build
+### Option 1: Run in MSYS2 MinGW64 Shell
+
+Open "MSYS2 MinGW64" from Start menu, then:
+
+```bash
+cd /c/Users/User/Documents/decompilations/sly1-ps2-decomp/PS2Recomp/build
 
 # Generate recompiled code
-.\ps2xRecomp\Release\ps2recomp.exe ..\..\sly1-recomp\config\sly1_config.toml
+./ps2xRecomp/ps2recomp ../../sly1-recomp/config/sly1_config.toml
 
 # Rebuild
-cmake --build . --config Release
+ninja -j8
 
 # Run
-.\ps2xRuntime\Release\ps2EntryRunner.exe ..\..\sly1-recomp\disc\SCUS_971.98
+./ps2xRuntime/ps2EntryRunner ../../sly1-recomp/disc/SCUS_971.98
+```
+
+### Option 2: Run MSYS2 from PowerShell
+
+From PowerShell, invoke MSYS2 bash:
+
+```powershell
+# Full rebuild via MSYS2
+C:/msys64/usr/bin/bash.exe -lc "cd /c/Users/User/Documents/decompilations/sly1-ps2-decomp/PS2Recomp/build && ninja -j8"
+
+# Run (can be done in PowerShell directly)
+C:\Users\User\Documents\decompilations\sly1-ps2-decomp\PS2Recomp\build\ps2xRuntime\ps2EntryRunner.exe C:\Users\User\Documents\decompilations\sly1-ps2-decomp\sly1-recomp\disc\SCUS_971.98
+```
+
+### Initial CMake Configuration (only needed once or after clean)
+
+```bash
+# In MSYS2 MinGW64 shell:
+cd /c/Users/User/Documents/decompilations/sly1-ps2-decomp/PS2Recomp
+rm -rf build && mkdir build && cd build
+cmake -G Ninja ..
 ```
 
 ### Full Rebuild (MSYS2 MinGW64)
