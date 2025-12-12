@@ -8,6 +8,16 @@
 
 ---
 
+## New to Decomp/Recomp? Start Here!
+
+**[GETTING_STARTED.md](docs/GETTING_STARTED.md)** - Learn decomp/recomp using AI as your learning partner
+
+I built this project with **zero prior knowledge** of decompilation. Using AI (Claude Code) as a learning partner, I went from knowing nothing to finding and fixing critical bugs in a few hours.
+
+**Why AI + Decomp works so well:** Decompilation is *deterministic* - code matches or it doesn't, games run or crash. AI can read error output and systematically debug, making it the perfect learning partner. No expertise required - just curiosity and an AI assistant.
+
+---
+
 ## What is This?
 
 This project aims to run **Sly Cooper and the Thievius Raccoonus** (PS2) natively on PC using static recompilation. Instead of emulating the PS2 hardware, we translate the original MIPS machine code to C++ that runs directly on your computer.
@@ -38,6 +48,7 @@ See `docs/` directory:
 
 | Document | Description |
 |----------|-------------|
+| `GETTING_STARTED.md` | **Start here!** Learn decomp/recomp with AI |
 | `PROJECT_STATUS.md` | Current status, timeline, known issues |
 | `PS2RECOMP_GUIDE.md` | How the recompiler works, configuration |
 | `BUILD_GUIDE.md` | General build instructions (any platform) |
