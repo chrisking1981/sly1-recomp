@@ -21,23 +21,26 @@ What I did have:
 
 ### The Key Insight
 
-Decompilation and recompilation are **deterministic/binary** problems:
+Decompilation and recompilation are **deterministic** problems with **measurable output**:
 - Code either matches or it doesn't
-- The game either runs or crashes
-- Register values are either correct or wrong
+- The game runs or crashes at a specific address
+- You can count exactly how many functions executed (0 → 50 → 108...)
+- Register values are concrete numbers you can trace
 
 This is **perfect for AI** because:
 
-1. **AI can read the output** - Crash logs, compiler errors, and debug output are text that AI understands perfectly
+1. **AI can read the output** - Crash logs, compiler errors, register dumps, and function counts are all text AI understands perfectly
 
-2. **Clear success criteria** - "Does the code match?" is a yes/no question, not subjective
+2. **Clear, measurable progress** - "We went from 50 to 108 function calls" is concrete. "Crash at 0x185bc8" tells AI exactly where to look
 
 3. **Systematic iteration** - AI excels at methodical debugging:
    ```
-   Test → Crash → Read error → Hypothesize → Fix → Test again
+   Run → Crash at X → Read error → Hypothesize → Fix → Run again → More progress!
    ```
 
-4. **AI wants a goal** - Give AI a binary target ("make this function match" or "fix this crash") and it will systematically work toward it
+4. **AI wants a goal** - Give AI a measurable target ("get 10 more functions running" or "fix this crash") and it will systematically work toward it
+
+5. **Binary feedback loop** - Every change either helps or doesn't. AI can see the result and adjust
 
 ---
 

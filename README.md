@@ -14,7 +14,7 @@
 
 I built this project with **zero prior knowledge** of decompilation. Using AI (Claude Code) as a learning partner, I went from knowing nothing to finding and fixing critical bugs in a few hours.
 
-**Why AI + Decomp works so well:** Decompilation is *deterministic* - code matches or it doesn't, games run or crash. AI can read error output and systematically debug, making it the perfect learning partner. No expertise required - just curiosity and an AI assistant.
+**Why AI + Decomp/Recomp works so well:** Both are *deterministic* - you get clear, measurable output at every step. Does the code match? Does the game run? How many functions executed? AI can read crash logs, trace register values, and systematically debug. No expertise required - just curiosity and an AI assistant.
 
 ---
 
