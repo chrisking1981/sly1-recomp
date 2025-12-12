@@ -43117,12 +43117,22 @@
   {
     "name": "FlushFrames__Fi",
     "address": 1438224,
-    "size": 56
+    "size": 48
+  },
+  {
+    "name": "entry_15f240",
+    "address": 1438272,
+    "size": 8
   },
   {
     "name": "entry_15f248",
     "address": 1438280,
-    "size": 24
+    "size": 16
+  },
+  {
+    "name": "entry_15f258",
+    "address": 1438296,
+    "size": 8
   },
   {
     "name": "entry_15f260",
@@ -58202,7 +58212,12 @@
   {
     "name": "entry_1857f0",
     "address": 1595376,
-    "size": 20
+    "size": 4
+  },
+  {
+    "name": "entry_1857f4",
+    "address": 1595380,
+    "size": 16
   },
   {
     "name": "entry_185804",
@@ -58447,7 +58462,12 @@
   {
     "name": "entry_185ba0",
     "address": 1596320,
-    "size": 36
+    "size": 16
+  },
+  {
+    "name": "entry_185bb0",
+    "address": 1596336,
+    "size": 20
   },
   {
     "name": "entry_185bc4",
