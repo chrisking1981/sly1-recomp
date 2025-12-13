@@ -1,7 +1,8 @@
 # Next Steps: Systematische Aanpak naar Graphics
 
-> **Status:** 12 December 2024
+> **Status:** 13 December 2025 (Updated - Main Loop Verified!)
 > **Doel:** Graphics in beeld krijgen voor Sly Cooper
+> **Repository:** https://github.com/chrisking1981/sly1-recomp
 
 ---
 
@@ -12,180 +13,186 @@
 │ PS2Recomp Executie Status                                       │
 ├─────────────────────────────────────────────────────────────────┤
 │ Boot sequence:    ✅ Werkt (_start → SetupThread → main entry)  │
-│ Functies executed: 138+ calls                                    │
-│ Status:           🔄 Game draait in SignalSema loop             │
-│ Blocker:          Syscall implementatie (SignalSema/VSync)      │
-│ Graphics:         ❌ Nog niet bereikt                            │
-│ DMA:              ❌ Nog niet bereikt                            │
-│ Build:            ✅ Werkt (zie BUILD.md voor instructies)       │
+│ Functies executed: 54,000,000+ calls in 15 sec (stabiel!)       │
+│ CD-ROM:           ✅ ISO reading geïmplementeerd                │
+│ Game State Loop:  ✅ Bypassed (0x2701b8 patched)                │
+│ Sound/IOP:        ✅ Gestubbed + WAV playback via Raylib        │
+│ Main Loop:        ✅ Game draait in main() @ 0x1857c8           │
+│ FlushFrames:      ✅ FIXED in PS2Recomp code generator!         │
+│ MPEG Video:       ✅ Correct skipped (branch delay slot fix)    │
+│ Branch Delay:     ✅ FIXED in PS2Recomp code generator!         │
+│ Frame Rendering:  ✅ OpenFrame/CloseFrame worden aangeroepen    │
+│ DMA Transfers:    ⚠️ Code draait, maar geen hardware emulatie   │
+│ Graphics:         ❌ GS emulatie ontbreekt - geen pixels        │
+│ Build:            ✅ Split files (19 bestanden, snelle rebuild) │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Entry Points Gefixed Deze Sessie:
-- 0x185bb0 ✅
-- 0x1857f4 ✅
-- 0x15f240 ✅
-- 0x15f258 ✅
+### Game Flow (Verified 13 December 2025)
 
----
+De game doorloopt nu succesvol de volgende flow:
 
-## Laatste Voortgang
-
-### Crash Fix (0x185bb0)
-- **Probleem:** Game crashte op call #110 met "No func at 0x185bb0"
-- **Oorzaak:** JAL naar midden van bestaande functie `entry_185ba0`
-- **Oplossing:** Functie gesplit in `entry_185ba0` (size: 16) en `entry_185bb0` (size: 20)
-- **Bestand:** `sly1-recomp/config/sly1_functions.json`
-- **Status:** Recompiled, wacht op herbouw runtime
-
-### Build Environment Fix
-- **Probleem:** CMake/Ninja builds faalden met git https helper errors
-- **Oorzaak:** MSYS2 PATH niet compleet in Claude Code shell
-- **Oplossing:** Beide `/c/msys64/mingw64/bin` EN `/c/msys64/usr/bin` in PATH
-- **Zie:** `docs/BUILD.md` voor volledige instructies
-
----
-
-## Systematische Aanpak
-
-### Fase 1: Data Verzamelen ✅ VOLTOOID
-
-**Resultaat:**
-- Trace geanalyseerd met `tools/trace_analyzer.py`
-- Crash geïdentificeerd op 0x185bb0
-- Fix toegepast
-
-### Fase 2: Crash Fixen ⏳ IN PROGRESS
-
-**Volgende stappen:**
-1. Rebuild PS2Recomp met fix
-2. Run game opnieuw
-3. Analyseer nieuwe crash (indien aanwezig)
-4. Herhaal tot we verder komen
-
-**Commando's:**
-```bash
-# Vanaf project root
-cd PS2Recomp/build
-
-# Configure (alleen als clean build nodig)
-PATH="/c/msys64/mingw64/bin:/c/msys64/usr/bin:$PATH" \
-  /c/msys64/mingw64/bin/cmake.exe -G Ninja \
-  -DFETCHCONTENT_UPDATES_DISCONNECTED=ON \
-  -DCMAKE_BUILD_TYPE=Release ..
-
-# Build
-PATH="/c/msys64/mingw64/bin:/c/msys64/usr/bin:$PATH" \
-  /c/msys64/mingw64/bin/ninja.exe ps2EntryRunner
-
-# Run
-cd ps2xRuntime
-./ps2EntryRunner.exe "../../../sly1-decomp/disc/SCUS_971.98"
+```
+_start (0x100008)
+    ↓
+SetupThread syscall → SP = 0x64C700
+    ↓
+SetupHeap syscall → heap configured
+    ↓
+_InitSys → syscall table setup
+    ↓
+Startup() → 29 startup functies
+    ↓
+main() @ 0x1857c8 ← WE ZIJN HIER!
+    ↓
+┌──────────────────────────────────────────┐
+│ Main Loop (draait stabiel):              │
+│   1. Check MPEG video (g_mpeg.oid_1)     │
+│   2. Check transitions                   │
+│   3. UpdateJoy(), UpdateGameState()      │
+│   4. if (g_psw):                         │
+│      - OpenFrame()                       │
+│      - RenderSw(), DrawSw()              │
+│      - CloseFrame()                      │
+│   5. g_cframe++                          │
+└──────────────────────────────────────────┘
+    ↓
+CloseFrame() → sceDmaSend() → GIF packets
+    ↓
+❌ DMA data gaat nergens heen (geen GS emulatie)
 ```
 
-### Fase 3: IO Stubbing voor Stabiliteit
+### Grote Fixes (13 December 2025):
 
-**Doel:** Game kan doordraaien zonder te crashen op IO
+**1. PS2Recomp Code Generator Loop Fix (Bug #6)**
+Het probleem was dat de code generator `return;` genereerde na ELKE function call (JAL), ook als die call binnen een loop zat. Dit brak loops met syscalls.
 
-**Aanpak:**
-- Alle GS register writes loggen maar niet crashen
-- DMA transfers "voltooien" (busy bit clearen)
-- VIF data accepteren maar negeren
-- Interrupts stubben
+**2. Branch Delay Slot Condition Bug (Bug #7)**
+Een kritieke bug waarbij de branch conditie werd geëvalueerd NA de delay slot, in plaats van ERVOOR. Hierdoor werd de MPEG video check nooit correct uitgevoerd.
 
-**Test:** Game draait door tot main loop (zelfs zonder graphics)
-
-### Fase 4: Eerste Graphics Output
-
-**Doel:** Iets op scherm krijgen
-
-**Opties:**
-
-#### Optie A: Raylib (Simpel)
-PS2Recomp heeft al Raylib als dependency:
-1. Open een window met Raylib
-2. Log GS framebuffer writes
-3. Teken een placeholder
-
-#### Optie B: Parallel-GS Integratie (Complex)
-Integreer de parallel-gs GS emulator:
-1. Voeg Vulkan dependency toe
-2. Route GS calls naar parallel-gs interface
-3. Krijg echte graphics output
-
-**Aanbeveling:** Start met Optie A, migreer later naar B
-
-### Fase 5: Iteratief Verbeteren
-
-Zodra we iets zien:
-1. Identificeer wat er mis is
-2. Debug specifieke GS feature
-3. Implementeer/fix
-4. Herhaal
+**Beide fixes in onze PS2Recomp fork:** https://github.com/chrisking1981/PS2Recomp
 
 ---
 
-## Benodigde Tools
+## Voortgang Overzicht
 
-| Tool | Doel | Status |
-|------|------|--------|
-| `trace_analyzer.py` | Analyseer execution logs | ✅ Gemaakt |
-| Execution logger | Uitgebreide IO logging | ⚠️ Deels in PS2Recomp |
-| PCSX2 trace | Vergelijk met echte emulator | ❌ Nog niet |
-| GS register decoder | Begrijp GS writes | ❌ Nog niet |
-
----
-
-## Deterministische Test Cases
-
-### Test 1: Boot verder dan 110 calls
-**Input:** Sly Cooper ELF
-**Expected:** Game komt verder dan call #110 na fix
-**Actual:** TBD - wacht op rebuild
-
-### Test 2: GS registers worden geschreven
-**Input:** Game executie
-**Expected:** We zien welke GS registers worden geschreven
-**Actual:** TBD (via trace_analyzer)
-
-### Test 3: DMA transfers starten
-**Input:** Game executie
-**Expected:** We zien DMA transfer attempts
-**Actual:** TBD (via trace_analyzer)
-
-### Test 4: Window opent
-**Input:** Game met Raylib window
-**Expected:** Window opent, blijft open
-**Actual:** TBD
-
-### Test 5: Eerste pixels
-**Input:** Game met basis GS handling
-**Expected:** Iets zichtbaar op scherm
-**Actual:** TBD
+| Fase | Status | Resultaat |
+|------|--------|-----------|
+| Boot sequence | ✅ | Game start correct |
+| Syscall handling | ✅ | Alle basis syscalls werken |
+| Function dispatch | ✅ | Mid-function entries werken |
+| Indirect jumps | ✅ | Range lookup werkt |
+| CD-ROM | ✅ | ISO reading geïmplementeerd |
+| Game state loop | ✅ | Bypassed, game vordert |
+| Sound/IOP | ✅ | Gestubbed + WAV playback |
+| VBlank | ✅ | Periodiek triggered |
+| **Loop Fix** | ✅ | PS2Recomp code generator gefixed |
+| **Branch Delay** | ✅ | PS2Recomp code generator gefixed |
+| **MPEG Video** | ✅ | Correct skipped wanneer geen video |
+| **Main Loop** | ✅ | Draait stabiel @ 0x1857c8 |
+| **Frame Rendering** | ✅ | OpenFrame/CloseFrame aangeroepen |
+| DMA Transfers | ⚠️ | Code draait, hardware ontbreekt |
+| Graphics output | ❌ | GS emulatie ontbreekt |
 
 ---
 
-## Volgende Actie
+## Huidige Bottleneck: Graphics Synthesizer (GS) Emulatie
 
-**NU:** Rebuild PS2Recomp en test of de 0x185bb0 fix werkt
+De game draait nu in de main loop en maakt graphics calls:
 
+### Wat er gebeurt:
+1. Game roept `OpenFrame()` aan (0x15F2xx)
+2. Game bouwt VIF/GIF packets in geheugen
+3. Game roept `CloseFrame()` aan
+4. `sceDmaSend(g_pdcGif, data)` wordt aangeroepen
+5. **DMA data gaat nergens heen** - geen GS emulatie!
+
+### Wat we nodig hebben:
+- **DMA channel emulatie** - om GIF packets te ontvangen
+- **GIF unpacking** - om primitives te extraheren
+- **GS rendering** - om pixels te tekenen
+
+---
+
+## Volgende Stappen
+
+### 1. DMA/GIF Logging (Quick Win)
+Voeg logging toe aan `sceDmaSend` om te zien:
+- Welke DMA channel (GIF, VIF0, VIF1)
+- Hoeveel data
+- Wat voor GIF tags
+
+### 2. GS Register Monitoring
+Log GS register writes om te zien welke GS commands de game doet.
+
+### 3. Basis GS Emulatie
+Keuzes:
+- **parallel-gs** (reference/) - Volledige Vulkan implementatie
+- **Software rasterizer** - Simpeler maar trager
+- **Stub met logging** - Om te begrijpen wat nodig is
+
+---
+
+## Key Technical Discoveries
+
+### Branch Delay Slot Bug (13 December 2025)
+
+**Probleem:**
+```cpp
+// FOUT - delay slot overschrijft register VOOR branch check
+SET_GPR_U32(ctx, 2, READ32(...));  // Load into $2
+SET_GPR_U32(ctx, 2, 0x260000);     // Delay slot overwrites!
+if (GPR_U32(ctx, 2) == 0) { ... }  // Uses NEW value!
+```
+
+**Fix:**
+```cpp
+uint32_t branch_cond = GPR_U32(ctx, 2);  // Save BEFORE delay slot
+SET_GPR_U32(ctx, 2, 0x260000);            // Delay slot executes
+if (branch_cond == 0) { ... }             // Use saved value
+```
+
+**Impact:** MPEG video check werkt nu correct - skipt als `oid_1 == 0`.
+
+### Loop Fix (eerder vandaag)
+
+**Probleem:** Na elke JAL werd `return;` gegenereerd, ook binnen loops.
+
+**Fix:** Gebruik `goto label_XXXX;` voor interne function calls.
+
+---
+
+## Build Instructies
+
+**Snelle rebuild (na kleine wijziging):**
 ```bash
-# Zie docs/BUILD.md voor volledige instructies
 cd PS2Recomp/build
-PATH="/c/msys64/mingw64/bin:/c/msys64/usr/bin:$PATH" ninja ps2EntryRunner
-cd ps2xRuntime
-./ps2EntryRunner.exe "../../../sly1-decomp/disc/SCUS_971.98" 2>&1 | tee ../../../trace_new.log
+export PATH="/c/msys64/mingw64/bin:/c/msys64/usr/bin:$PATH"
+ninja ps2EntryRunner
+```
+
+**Na wijziging in code_generator.cpp:**
+```bash
+# 1. Rebuild recompiler
+cd PS2Recomp/build && ninja ps2recomp
+
+# 2. Recompile game (optioneel - alleen als je nieuwe functies wilt)
+cd sly1-recomp
+../PS2Recomp/build/ps2xRecomp/ps2recomp.exe config/sly1_config.toml
+
+# 3. Rebuild runtime
+cd ../PS2Recomp/build && ninja ps2EntryRunner
 ```
 
 ---
 
 ## Referenties
 
-- `reference/parallel-gs/BLOG_POST.md` - Hoe GS emulatie werkt
-- `reference/ps2-recompiler-Cactus/` - Threading/syscall referentie
-- `docs/ps2recomp-analysis.md` - Component status overzicht
-- `docs/BUILD.md` - Build instructies
+- `LESSONS_LEARNED.md` - Alle geleerde lessen
+- `docs/sessions/2025-12-13-gs-logging.md` - Vandaag's sessie details
+- `docs/mpeg-system.md` - MPEG video systeem documentatie
+- `reference/parallel-gs/` - GS emulatie referentie
 
 ---
 
-*Dit document wordt bijgewerkt naarmate we vorderen*
+*Laatst bijgewerkt: 13 December 2025 - Main loop verified, ready for GS emulation*
