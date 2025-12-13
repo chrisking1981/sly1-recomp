@@ -4,10 +4,10 @@
 
 [general]
 # Path to input ELF file (relative to this config)
-input = "../../disc/SCUS_971.98"
+input = "../disc/SCUS_971.98"
 
 # Path to output directory
-output = "../../recomp_output/"
+output = "../recomp_output/"
 
 # Single file output mode (true = one big file, faster to compile)
 single_file_output = true

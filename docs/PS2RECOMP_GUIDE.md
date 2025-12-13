@@ -26,6 +26,20 @@ PS2Recomp is a **static recompiler** that translates PS2 game code (MIPS R5900) 
 - **Incomplete** - Hardware must still be emulated (GS, DMA, etc.)
 - **Complex** - Requires deep understanding of both platforms
 
+### What PS2Recomp Actually Is
+
+PS2Recomp is a **function execution framework**, NOT a full PS2 emulator. It provides:
+- CPU instruction translation (MIPS → C++)
+- Memory management (RDRAM, Scratchpad)
+- Basic syscall handling
+- File I/O
+
+It does NOT provide:
+- Graphics rendering (GS is stubbed)
+- Audio (SPU2 not implemented)
+- Real multi-threading
+- Full hardware emulation
+
 ---
 
 ## Repository Structure
@@ -239,6 +253,124 @@ stubs = ["sin", "cos", "tan", "sqrt", "pow", "fabs"]
 ```toml
 stubs = ["fopen", "fclose", "fread", "fwrite", "fseek"]
 ```
+
+---
+
+## Runtime Capabilities (Detailed)
+
+### ✅ What's Actually Implemented
+
+| Category | Feature | Status |
+|----------|---------|--------|
+| **Memory** | 32MB RDRAM allocation | ✅ Works |
+| **Memory** | 16KB Scratchpad | ✅ Works |
+| **Memory** | 2MB IOP RAM | ✅ Works |
+| **Memory** | Address translation with TLB | ✅ Works |
+| **Memory** | Byte/Word/Quad-word read/write | ✅ Works |
+| **File I/O** | fioOpen (host0:, cdrom0: mapping) | ✅ Works |
+| **File I/O** | fioClose, fioRead, fioWrite | ✅ Works |
+| **File I/O** | fioLseek (SEEK_SET/CUR/END) | ✅ Works |
+| **Sync** | CreateSema, DeleteSema | ✅ Works |
+| **Sync** | SignalSema, WaitSema, PollSema | ✅ Works |
+| **Thread** | CreateThread (ID allocation only) | ⚠️ Partial |
+| **Thread** | GetThreadId | ✅ Works |
+| **Stdlib** | malloc, free, calloc, realloc | ✅ Works |
+| **Stdlib** | memcpy, memset, memmove, memcmp | ✅ Works |
+| **Stdlib** | strcpy, strcmp, strlen, strcat, etc. | ✅ Works |
+| **CPU** | All 32 GPRs (128-bit) | ✅ Works |
+| **CPU** | COP0 (System Control) | ✅ Works |
+| **CPU** | COP1 (FPU) 32 float registers | ✅ Works |
+| **CPU** | VU0 macro mode registers | ✅ Works |
+
+### ❌ What's Stubbed/TODO
+
+| Category | Feature | Status |
+|----------|---------|--------|
+| **Graphics** | GS register writes | ❌ Stub (prints only) |
+| **Graphics** | Actual rendering | ❌ Not implemented |
+| **DMA** | DMA transfers | ❌ Stub (prints only) |
+| **DMA** | DMA chains/tags | ❌ Not implemented |
+| **VU** | VU0/VU1 microprogram execution | ❌ Empty stub |
+| **Thread** | Real multi-threading | ❌ Not implemented |
+| **Thread** | SuspendThread, ResumeThread | ❌ TODO |
+| **Sync** | Event Flags (8 functions) | ❌ TODO |
+| **Sync** | Alarms (4 functions) | ❌ TODO |
+| **IOP** | All SIF/RPC functions (10) | ❌ TODO |
+| **Timer** | Interrupt handling | ❌ Stub |
+| **Timer** | COP0 Count increment | ❌ Not implemented |
+| **Audio** | SPU2 | ❌ Not even addressed |
+| **Input** | Controller | ❌ Not implemented |
+
+---
+
+## Graphics: What Exists vs What's Missing
+
+PS2Recomp has **infrastructure** for graphics but **no actual rendering**:
+
+### ✅ What Already Exists
+
+```cpp
+// Data structures are defined in ps2_runtime.h:
+
+struct GSRegisters {          // All 19 GS registers
+    uint64_t pmode;           // Pixel mode
+    uint64_t smode1, smode2;  // Sync modes
+    uint64_t dispfb1, display1, dispfb2, display2;  // Display buffers
+    uint64_t bgcolor, csr, imr;  // Background, status, interrupt mask
+    // ... etc
+};
+
+struct VIFRegisters { ... };  // VIF0/VIF1 registers
+struct DMARegisters { ... };  // 10 DMA channels
+```
+
+**Address ranges are recognized:**
+- GS registers: `0x12000000 - 0x12001000`
+- DMA registers: `0x10008000 - 0x1000F000`
+
+**Raylib is included** as a dependency (`build/_deps/raylib-src`) - a graphics library ready for rendering.
+
+**Syscalls exist:**
+- `GsSetCrt()` - logs video mode (interlaced, NTSC/PAL)
+- `GsGetIMR()` / `GsPutIMR()` - interrupt mask register
+
+### ❌ What's Missing (The Hard Part)
+
+| Component | What's Needed |
+|-----------|---------------|
+| **GS register logic** | Actually process writes, not just print them |
+| **Framebuffer** | Allocate memory for pixels (640x448 or similar) |
+| **GIF tag parsing** | Interpret drawing commands from DMA |
+| **Primitive rendering** | Triangles, sprites, lines |
+| **Texture handling** | Upload, sample, filter textures |
+| **DMA transfers** | Move data from RAM to GS |
+| **Raylib bridge** | Translate PS2 draw calls to Raylib/OpenGL |
+
+### Current Flow (Broken)
+
+```
+Game writes to 0x12000000 (GS register)
+         ↓
+PS2Recomp: cout << "GS register write: 0x12000000 = ..."
+         ↓
+Nothing happens - no pixels, no framebuffer
+```
+
+### What Would Need to Happen
+
+```
+Game writes GS registers + DMA transfer
+         ↓
+PS2Recomp intercepts and parses GIF tags
+         ↓
+Extract triangles/textures from PS2 format
+         ↓
+Translate to Raylib draw calls
+         ↓
+Raylib renders to window
+```
+
+This is a significant undertaking - essentially writing a software PS2 GPU or HLE graphics layer.
 
 ---
 

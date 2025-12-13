@@ -36,11 +36,16 @@ This project aims to run **Sly Cooper and the Thievius Raccoonus** (PS2) nativel
 | Function discovery | ✅ Done | 22,416 functions identified |
 | Code generation | ✅ Done | All functions translated to C++ |
 | Boot sequence | ✅ Works | _start → _InitSys → main |
-| Syscalls | ⚠️ Partial | Core syscalls working |
-| Graphics | ❌ TODO | GS emulation needed |
-| Audio | ❌ TODO | SPU2 emulation needed |
+| Memory management | ✅ Works | 32MB RDRAM, 16KB Scratchpad |
+| File I/O | ✅ Works | fioOpen, fioRead, fioWrite, fioLseek |
+| Syscalls | ⚠️ Partial | Core syscalls working, many TODO |
+| Graphics (GS) | ❌ Stub | Struct exists, handlers only print debug |
+| DMA | ❌ Stub | Struct exists, no actual transfer |
+| Audio (SPU2) | ❌ None | Not implemented |
 
-**Current progress:** Game executes 108+ function calls before hitting unimplemented hardware.
+**Current progress:** Game executes 108+ function calls before hitting unimplemented GS/DMA hardware.
+
+**Note:** PS2Recomp is a *function execution framework*, not a full emulator. CPU/memory/file I/O work, but graphics and audio require implementation.
 
 ## Documentation
 

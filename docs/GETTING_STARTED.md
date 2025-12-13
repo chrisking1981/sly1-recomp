@@ -177,8 +177,30 @@ By working through crashes and fixes, you'll naturally learn:
 | **Function calling conventions** | Understanding register usage |
 | **Delay slots** | Fixing branch-related bugs |
 | **ELF format** | Understanding game structure |
+| **Tool limitations** | Understanding what PS2Recomp can/can't do |
 
 You don't need to study these first - you'll learn them **in context** when they matter.
+
+---
+
+## Current State of PS2Recomp
+
+Understanding what PS2Recomp can and can't do helps set expectations:
+
+### ✅ What Works Now
+- **CPU instruction translation** - MIPS to C++
+- **Memory management** - 32MB RDRAM, Scratchpad
+- **File I/O** - Reading game files
+- **Basic syscalls** - SetupThread, SetupHeap, etc.
+
+### ❌ What's Stubbed (Not Yet Implemented)
+- **Graphics (GS)** - Handlers exist but only print debug messages
+- **DMA** - Same - stub only
+- **Audio (SPU2)** - Not implemented at all
+- **Real threading** - Only ID allocation
+
+### What This Means
+When you run the game, it will execute ~108 function calls (boot sequence, initialization) and then stop when it tries to render graphics. This is expected! The next big step is implementing GS emulation.
 
 ---
 

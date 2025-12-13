@@ -43117,7 +43117,52 @@
   {
     "name": "FlushFrames__Fi",
     "address": 1438224,
-    "size": 272
+    "size": 48
+  },
+  {
+    "name": "entry_15f240",
+    "address": 1438272,
+    "size": 8
+  },
+  {
+    "name": "entry_15f248",
+    "address": 1438280,
+    "size": 16
+  },
+  {
+    "name": "entry_15f258",
+    "address": 1438296,
+    "size": 8
+  },
+  {
+    "name": "entry_15f260",
+    "address": 1438304,
+    "size": 76
+  },
+  {
+    "name": "entry_15f2ac",
+    "address": 1438380,
+    "size": 8
+  },
+  {
+    "name": "entry_15f2b4",
+    "address": 1438388,
+    "size": 8
+  },
+  {
+    "name": "entry_15f2bc",
+    "address": 1438396,
+    "size": 44
+  },
+  {
+    "name": "entry_15f2e8",
+    "address": 1438440,
+    "size": 24
+  },
+  {
+    "name": "entry_15f300",
+    "address": 1438464,
+    "size": 32
   },
   {
     "name": "BlendPrevFrame__Fv",

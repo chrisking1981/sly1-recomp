@@ -3,7 +3,7 @@
 > **Author:** Chris King (@chrisking1981)
 > **AI Tool:** Claude Code with Claude Opus 4.5
 > **Project:** PS2 Static Recompilation for Sly Cooper
-> **Date:** December 2025
+> **Date:** December 2024
 
 ---
 
@@ -274,7 +274,26 @@ tools/ps2recomp/
 ├── add_entry.py                        # Add single entry point
 ├── iterate_fixes.py                    # Automated test loop
 └── sly1_functions.json                 # 22,416 function definitions
+
+reference/                              # Reference implementations
+├── README.md                           # Full documentation of all references
+├── parallel-gs/                        # GS emulation (Vulkan)
+├── ps2-recompiler-Cactus/              # Threading, semaphores, syscalls
+├── Ps2Recomp-menaman123/               # Event Flags (SDL)
+└── SotCStaticRecompilation/            # Config examples
 ```
+
+### Reference Projects
+
+We collected useful reference implementations from other PS2 recompilation projects:
+
+| Project | Use For |
+|---------|---------|
+| **parallel-gs** | Graphics Synthesizer emulation (Vulkan compute shaders) |
+| **ps2-recompiler-Cactus** | pthread threading, mutex semaphores, full syscall table |
+| **Ps2Recomp-menaman123** | SDL-based Event Flags implementation |
+
+See `reference/README.md` for detailed documentation.
 
 ---
 
